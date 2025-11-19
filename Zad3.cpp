@@ -15,13 +15,23 @@ Comm::NXTComm comm;
 //CZUJNIKI SA DEAKTYWOWANE ZA PETLA NIESKONCZONA, LUB PO KOMENDZIE k,
 
 int cte;
-int ksi = 1;
+int ksi = 1.1;
 
-int convert(int k, int x) {
-	x = x - k;
-	if (x > 180) x = x - 360;
-	else if (x < -180) x = 360 + x;
-	return x;
+
+int convert(int k, int orient) {
+	if (k < 180) {
+		if (orient <= k + 180) {
+			orient = orient - k;
+		}
+		else orient = (orient - k) - 360;
+	}
+	if (k >= 180) {
+		if (orient >= k - 180) {
+			orient = orient - k;
+		}
+		else orient = 360 - (k - orient);
+	}
+	return orient;
 }
 
 void steer(int k1, int k2, int k, int orient)
@@ -66,6 +76,7 @@ int main()
 		NXT::Sensor::SetLight(&comm, IN_1, 1);
 		int color;
 
+		// kompas
 		NXT::Sensor::SetSonar(&comm, IN_2);
 		int k = 0;
 
@@ -131,10 +142,11 @@ int main()
 							if (cte > k2) { k1 = 0; }
 							else { k1 = k2 - (ksi * cte); }
 						}
-						cout << "k1 = " << k1 << "k2 = " << k2 << endl;
+						cout << "orient = " << orient << "k = " << k << endl;
 
-						NXT::Motor::SetForward(&comm, OUT_B, k1);
-						NXT::Motor::SetForward(&comm, OUT_C, k2);
+						NXT::Motor::SetForward(&comm, OUT_B, k2);
+						NXT::Motor::SetForward(&comm, OUT_C, k1);
+						
 
 						if (kbhit() == true) { break; }
 					}
@@ -148,8 +160,10 @@ int main()
 
 				if (decyzja == 'O' || decyzja == 'o')
 				{
-					k = 2 * NXT::Sensor::GetSonarValue(&comm, IN_2);
-					cout << "orientacja = " << k << endl;
+					orient = 2 * NXT::Sensor::GetSonarValue(&comm, IN_2);
+					cte = convert(k, orient);
+					cout << "\norient = " << orient;
+					cout << "\ncte = " << cte;
 				}
 
 				if (decyzja == 'N' || decyzja == 'n')
