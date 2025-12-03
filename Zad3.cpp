@@ -15,7 +15,7 @@ Comm::NXTComm comm;
 //CZUJNIKI SA DEAKTYWOWANE ZA PETLA NIESKONCZONA, LUB PO KOMENDZIE k,
 
 int cte;
-int ksi = 1.1;
+int ksi = 1;
 
 
 int convert(int k, int orient) {
@@ -34,21 +34,6 @@ int convert(int k, int orient) {
 	return orient;
 }
 
-void steer(int k1, int k2, int k, int orient)
-{
-	cte = convert(k, orient);
-	if (cte <= 0)
-	{
-		if (abs(cte) > k1) { k2 = 0; }
-		else { k2 = k1 + (ksi * cte); }
-	}
-	if (cte > 0)
-	{
-		if (cte > k2) { k1 = 0; }
-		else { k1 = k2 - (ksi * cte); }
-	}
-	cout << "k1 = " << k1 << "k2 = " << k2 << endl;
-}
 
 int main()
 {
@@ -77,23 +62,23 @@ int main()
 		int color;
 
 		// kompas
-		NXT::Sensor::SetSonar(&comm, IN_2);
-		int k = 0;
+		NXT::Sensor::SetSonar(&comm, IN_3);
 
 		//aktywacja sonaru,
-		NXT::Sensor::SetSonar(&comm, IN_3);
-		int sonar;
+		//NXT::Sensor::SetSonar(&comm, IN_3);
+		//int sonar;
 
 		//poczatek programu
 		NXT::StartProgram(&comm, "program1");
 
-		//zmienna u¿ywana do sterowania
+		//zmienna uywana do sterowania
 		char decyzja;
 
 		//zmienna do orientacji
 		int orient;
-		int k1 = 15;
-		int k2 = 15;
+		int k1 = 30;
+		int k2 = 30;
+		int k = 60;
 
 		cout << "\n ___Podstawowe sterowanie do uzupelnienia___";
 		cout << "\n A - jazda w lewo";
@@ -128,25 +113,33 @@ int main()
 				if (decyzja == 'T' || decyzja == 't')
 				{
 					cout << "\nProgram kompas - start" << endl;
+					cout << "\nkierunek = " << k;
 					while (true)
 					{
-						orient = 2 * NXT::Sensor::GetSonarValue(&comm, IN_2);
+						orient = 2 * NXT::Sensor::GetSonarValue(&comm, IN_3);
 						cte = convert(k, orient);
-						if (cte <= 0)
+						if (cte < -1)
 						{
 							if (abs(cte) > k1) { k2 = 0; }
 							else { k2 = k1 + (ksi * cte); }
 						}
-						if (cte > 0)
+						else if (cte > 1)
 						{
 							if (cte > k2) { k1 = 0; }
 							else { k1 = k2 - (ksi * cte); }
 						}
-						cout << "orient = " << orient << "k = " << k << endl;
+						else
+						{
+							k1 = 30;
+							k2 = 30;
+						}
+						cout << "\norient = " << orient << ", cte = " << cte;
+						cout << "\nk1 = " << k1 << ", k2 = " << k2;
+
 
 						NXT::Motor::SetForward(&comm, OUT_B, k2);
 						NXT::Motor::SetForward(&comm, OUT_C, k1);
-						
+
 
 						if (kbhit() == true) { break; }
 					}
@@ -154,16 +147,15 @@ int main()
 					NXT::Motor::SetForward(&comm, OUT_B, 0);
 					NXT::Motor::SetForward(&comm, OUT_C, 0);
 
-					k1 = 15;
-					k2 = 15;
+					k1 = 30;
+					k2 = 30;
 				}
 
 				if (decyzja == 'O' || decyzja == 'o')
 				{
 					orient = 2 * NXT::Sensor::GetSonarValue(&comm, IN_2);
 					cte = convert(k, orient);
-					cout << "\norient = " << orient;
-					cout << "\ncte = " << cte;
+					cout << "\norient = " << orient << ", cte = " << cte;
 				}
 
 				if (decyzja == 'N' || decyzja == 'n')
@@ -274,7 +266,6 @@ int main()
 
 
 //opcje dotyczace Mindstorm NXT v. 1.0
-
 //if(decyzja=='L' || decyzja=='l')
 // {
 //  NXT::Sensor::SetLight(&comm, IN_3, 1);
